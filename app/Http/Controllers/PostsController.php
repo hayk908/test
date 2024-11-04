@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PostsRequestName;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -10,14 +11,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class PostsController extends Controller
 {
-    public function createPost(Request $request, $userId): JsonResponse
+    public function createPost(PostsRequestName $postsRequestName, $userId): JsonResponse
     {
-        $request->validate([
-            'title' => 'required|string',
-            'content' => 'string|nullable',
-        ]);
 
-        $data = $request->toArray();
+        $data = $postsRequestName->toArray();
 
         $postsData = [
             'user_id' => $userId,

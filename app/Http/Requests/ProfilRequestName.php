@@ -10,7 +10,7 @@ class ProfilRequestName extends FormRequest
     public const  BIO = 'bio';
     public const AVATAR = 'avatar';
 
-    public function rules()
+    public function rules():array
     {
         return [
             self::BIO => 'nullable|string',

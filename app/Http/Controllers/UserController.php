@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UserRequestName;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -12,16 +13,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserController extends Controller
 {
-    public function create(Request $request): JsonResponse
+    public function create(UserRequestName $userRequestName): JsonResponse
     {
-        $request->validate([
-            'userArray' => 'required|array',
-            'userArray.*.name' => 'required|string',
-            'userArray.*.email' => 'required|string',
-            'userArray.*.password' => 'required|int',
-        ]);
 
-        $data = $request->toArray();
+        $data = $userRequestName->toArray();
 
         foreach ($data['userArray'] as $item) {
             $user = [
