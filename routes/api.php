@@ -63,4 +63,3 @@ Route::get('/users/{userId}/posts', [PostsController::class, 'getPost']);
 Route::post('/users/{user}/category', [CategoryController::class, 'createCategory']);
 
 Route::get('/users/{userId}/category', [CategoryController::class, 'getCategory']);
-

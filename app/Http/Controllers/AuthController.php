@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AuthsRequestName;
 use App\Service\Auth\Action\ParentAuthAction;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\JsonResponse;
@@ -14,16 +15,11 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class AuthController extends Controller
 {
     public function login(
-        Request          $request,
+        AuthsRequestName          $authsRequestName,
         ParentAuthAction $parentAuthAction
     ): array
     {
-        $data = $request->all();
-
-        $request->validate([
-            'email' => 'required|string|email|max:255',
-            'password' => 'required|string'
-        ]);
+        $data = $authsRequestName->all();
 
         $user = User::query()->where('email', $data['email'])->first();
 
