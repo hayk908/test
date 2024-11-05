@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UserDateList;
 use App\Http\Requests\UserRequestName;
 use App\Models\User;
 use Exception;
@@ -132,6 +133,27 @@ class UserController extends Controller
     public function test(): JsonResponse
     {
         return response()->json([Auth::user()]);
+    }
+
+    public function getData(UserDateList $userDateList): JsonResponse
+    {
+        $data = $userDateList->toArray();
+
+        $dataUser = User::query()->whereBetween('created_at', [$data['start'], $data['end']])->get();
+
+        $users = [];
+        foreach ($dataUser as $item) {
+            $user = [
+                'name' => $item['name'],
+                'email' => $item['email'],
+            ];
+
+            $users[] = $user;
+        }
+
+        return response()->json([
+            'users' => $users
+        ]);
     }
 }
 
