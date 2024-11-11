@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\GetUsersRequest;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use App\Service\UserService;
 use Illuminate\Http\JsonResponse;
@@ -78,7 +80,10 @@ class UserController extends Controller
         return response()->json($message);
     }
 
-    public function getAllUsers(Request $request): JsonResponse
+    /**
+     * @throws Exception
+     */
+    public function getAllUsers(GetUsersRequest $request): JsonResponse
     {
         $users = $this->userService->getAllUsers($request);
 

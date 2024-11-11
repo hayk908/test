@@ -30,6 +30,7 @@ class ParentAuthAction
     /**
      * @param array<string, mixed> $data
      * @return array<string, mixed>
+     * @throws GuzzleException
      */
     public function run(array $data): array
     {

@@ -2,8 +2,10 @@
 
 namespace App\Service;
 
+use App\Http\Requests\GetUsersRequest;
 use Exception;
 use App\Models\User;
+use App\Enum\UserRoleEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -95,15 +97,15 @@ class UserService
     }
 
     /**
-     * @param Request $request
+     * @param GetUsersRequest $request
      * @return array<string, mixed>
      * @throws Exception
      */
-    public function getAllUsers(Request $request): array
+    public function getAllUsers(GetUsersRequest $request): array
     {
         $user = Auth::user();
 
-        if (!$user || $user->role !== 'admin') {
+        if (!$user || $user->role !== UserRoleEnum::ADMIN->value) {
             throw new Exception('Вы не администратор');
         }
 
@@ -114,9 +116,9 @@ class UserService
         $data = $request->toArray();
 
         if ($enable !== null) {
-            $request->validate(['enable' => 'in:0,1|required']);
             $users = User::query()->where('enable', $enable)->get()->all();
         } elseif (isset($data['users']) && is_array($data['users'])) {
+            // Если передан список пользователей, ищем их по ID
             foreach ($data['users'] as $userId) {
                 $foundUser = User::query()->where('id', $userId)->first();
                 if ($foundUser) {
@@ -124,6 +126,7 @@ class UserService
                 }
             }
         } else {
+            // Если ничего не передано, возвращаем всех пользователей
             $users = User::all();
         }
 
