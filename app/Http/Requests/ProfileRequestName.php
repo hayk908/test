@@ -4,13 +4,22 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ProfilRequestName extends FormRequest
+class ProfileRequestName extends FormRequest
 {
 
     public const  BIO = 'bio';
     public const AVATAR = 'avatar';
 
-    public function rules():array
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+
+    /**
+     * @return array<string, string>
+     */
+    public function rules(): array
     {
         return [
             self::BIO => 'nullable|string',

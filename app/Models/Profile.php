@@ -15,11 +15,17 @@ class Profile extends Model
 
     protected $table = 'profiles';
 
+    /**
+     * @return BelongsTo<User, Profile>
+     */
     public function user(): BelongsTo
     {
-       return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return BelongsTo<User, Profile>
+     */
     public function post(): BelongsTo
     {
         return $this->belongsTo(User::class);

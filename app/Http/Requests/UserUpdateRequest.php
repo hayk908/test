@@ -4,10 +4,13 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class PostsRequestName extends FormRequest
+class UserUpdateRequest extends FormRequest
 {
-    public const TITLE = 'title';
-    public const CONTENT = 'content';
+    public function authorize(): bool
+    {
+        return true;
+    }
+
 
     /**
      * @return array<string, string>
@@ -15,8 +18,8 @@ class PostsRequestName extends FormRequest
     public function rules(): array
     {
         return [
-            self::TITLE => 'required|string',
-            self::CONTENT => 'string|nullable',
+            'email' => 'required|email',
+            'name' => 'required',
         ];
     }
 }

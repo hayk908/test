@@ -2,158 +2,102 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UserDateList;
-use App\Http\Requests\UserRequestName;
 use App\Models\User;
-use Exception;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Service\UserService;
+use Illuminate\Http\JsonResponse;
+use App\Http\Requests\UserRequest;
+use App\Http\Requests\UserDateList;
+use App\Http\Requests\UserDeleteRequest;
+use App\Http\Requests\UserUpdateRequest;
 
 class UserController extends Controller
 {
-    public function create(UserRequestName $userRequestName): JsonResponse
+    public function __construct(protected UserService $userService)
     {
-
-        $data = $userRequestName->toArray();
-
-        foreach ($data['userArray'] as $item) {
-            $user = [
-                'name' => $item['name'],
-                'email' => $item['email'],
-                'password' => Hash::make($item['password'])
-            ];
-
-            $currentUser = User::query()->create($user);
-        }
-
-        return response()->json([$currentUser]);
     }
 
-    public function update(Request $request): JsonResponse
+    public function create(UserRequest $userRequestName): JsonResponse
     {
-        $data = $request->toArray();
+        $validatedData = $userRequestName->validated();
 
-        $updateUser = User::query()->where('email', $data['email'])->first();
+        $user = $this->userService->createUser($validatedData);
 
-        if ($updateUser) {
-            User::query()->where('email',
-                $data['email'])->update(['name' => $data['name']]);
-        } else {
-            throw new NotFoundHttpException("There is not");
-        }
-
-        return response()->json(['message' => 'User updated successfully']);
+        return response()->json($user, 201);
     }
 
-    public function delete(Request $request): JsonResponse
+    public function update(UserUpdateRequest $userUpdateRequest): JsonResponse
     {
-        $user = Auth::user();
+        $data = $userUpdateRequest->toArray();
 
-        $data = $request->toArray();
+        $this->userService->updateUser($data);
 
-        foreach ($data['delete'] as $item) {
+        return response()->json([
+            'message' => 'Пользователь обновлен успешно'
+        ]);
+    }
 
-            if ($user->id !== (int)$item) {
-                throw new NotFoundHttpException("id is not suitable");
+    public function delete(UserDeleteRequest $userDeleteRequest): JsonResponse
+    {
+        $validatedData = $userDeleteRequest->validated();
+
+        $data = [];
+
+        foreach ($validatedData as $item) {
+            if (is_numeric($item)) {
+                $data[] = (int)$item;
+            } else {
+                throw new \InvalidArgumentException('Ожидается числовое значение для идентификатора пользователя.');
             }
-
-            User::query()->where('id', $item)->delete();
         }
 
-        return response()->json(['message' => 'User deleted successfully']);
-    }
+        $message = $this->userService->deleteUser($data);
 
-    public function search(Request $request): JsonResponse
-    {
-        $email = $request->query('name');
-        $users = User::where('name', 'LIKE', "%{$email}%")->pluck('id', 'name');
-        return response()->json([$users]);
+        return response()->json($message);
     }
 
     public function get(Request $request): JsonResponse
     {
-        $order = $request->query('order');
-        $user = User::query()->orderBy('id', $order)->get();
-        return response()->json([$user]);
-    }
+        $order = $request->query('order', 'asc');
 
-    public function updateEnable($id, Request $request): JsonResponse
-    {
-        $data = $request->validate(['name' => 'required|string|max:255',]);
-
-        $userUpdate = User::query()->where('id', $id)->update(['name' => $data['name']]);
-
-        if (!$userUpdate) {
-            throw new NotFoundHttpException('there is no such user');
+        if (!is_string($order)) {
+            $order = 'asc';
         }
 
-        return response()->json([
-            'message' => 'user with id' . ' ' . $id . ' ' . 'revealed'
-        ]);
+        $user = $this->userService->getUsers($order);
+
+        return response()->json($user);
+    }
+
+    public function enableUser(User $user, Request $request): JsonResponse
+    {
+        $data = $request->validate(['name' => 'required|string|max:255']);
+
+        $message = $this->userService->enableUser($user->id, $data);
+
+        return response()->json($message);
     }
 
     public function getAllUsers(Request $request): JsonResponse
     {
-        $user = Auth::user();
+        $users = $this->userService->getAllUsers($request);
 
-        if ($user['role'] !== 'admin') {
-            throw new Exception('You are not an admin');
-        }
-
-        $users = [];
-
-        $enable = $request->query('enable');
-
-        $data = $request->toArray();
-
-        if ($enable !== null) {
-            $request->validate(['enable' => 'in:0,1|required']);
-            $user = User::query()->where('enable', $enable)->get();
-            $users = $user;
-        } elseif (isset($data['users'])) {
-            foreach ($data['users'] as $userId) {
-                $user = User::query()->where('id', $userId)->first();
-                $users[] = $user;
-            }
-        } else {
-            $users = User::all();
-        }
-
-        $count = count($users);
-
-        return response()->json([
-            'users' => $users,
-            'count' => $count
-        ]);
-    }
-
-    public function test(): JsonResponse
-    {
-        return response()->json([Auth::user()]);
+        return response()->json($users);
     }
 
     public function getData(UserDateList $userDateList): JsonResponse
     {
-        $data = $userDateList->toArray();
+        $validatedData = $userDateList->validated();
 
-        $dataUser = User::query()->whereBetween('created_at', [$data['start'], $data['end']])->get();
+        $data = [];
 
-        $users = [];
-        foreach ($dataUser as $item) {
-            $user = [
-                'name' => $item['name'],
-                'email' => $item['email'],
-            ];
+        foreach ($validatedData as $key => $value) {
 
-            $users[] = $user;
+            $data[$key] = is_scalar($value) ? (string)$value : '';
         }
 
-        return response()->json([
-            'users' => $users
-        ]);
+        $users = $this->userService->getData($data);
+
+        return response()->json($users);
     }
 }
-

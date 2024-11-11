@@ -21,7 +21,7 @@ class CategoryController extends Controller
         return response()->json($category->toArray());
     }
 
-    public function getCategory($userId): JsonResponse
+    public function getCategory(int $userId): JsonResponse
     {
         $user = User::find($userId);
 

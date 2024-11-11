@@ -11,7 +11,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class PostsController extends Controller
 {
-    public function createPost(PostsRequestName $postsRequestName, $userId): JsonResponse
+    public function createPost(PostsRequestName $postsRequestName, int $userId): JsonResponse
     {
 
         $data = $postsRequestName->toArray();
@@ -27,7 +27,7 @@ class PostsController extends Controller
         return response()->json([$createPost]);
     }
 
-    public function getPost($userId): JsonResponse
+    public function getPost(int $userId): JsonResponse
     {
         $user = User::query()->find($userId);
 

@@ -8,6 +8,9 @@ class FormRequestName extends FormRequest
 {
     public const NAME = 'name';
 
+    /**
+     * @return array<string, string>
+     */
     public function rules(): array
     {
         return [

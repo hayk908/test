@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -49,18 +50,33 @@ class User extends Authenticatable
     //    {
     //    }
 
-    public $timestamps = false;
+//    public $timestamps = false;
 
+    /**
+     * Get the profile associated with the user.
+     *
+     * @return HasOne<Profile>
+     */
     public function profile(): HasOne
     {
         return $this->hasOne(Profile::class);
     }
 
+    /**
+     * Get the posts associated with the user.
+     *
+     * @return HasMany<Post>
+     */
     public function post(): HasMany
     {
         return $this->hasMany(Post::class);
     }
 
+    /**
+     * Get the categories associated with the user.
+     *
+     * @return BelongsToMany<Category>c
+     */
     public function category(): belongsToMany
     {
         return $this->belongsToMany(Category::class, 'users_category');
