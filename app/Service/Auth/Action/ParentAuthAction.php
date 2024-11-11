@@ -3,15 +3,11 @@
 namespace App\Service\Auth\Action;
 
 use App\Models\User;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Config;
 use Laravel\Passport\Client;
-use Laravel\Passport\Http\Controllers\HandlesOAuthErrors;
+use Illuminate\Support\Facades\Config;
+use GuzzleHttp\Exception\GuzzleException;
 use League\OAuth2\Server\AuthorizationServer;
-use Nyholm\Psr7\Factory\Psr17Factory;
-use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
+use Laravel\Passport\Http\Controllers\HandlesOAuthErrors;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ParentAuthAction
@@ -19,29 +15,54 @@ class ParentAuthAction
     use HandlesOAuthErrors;
 
     protected User $user;
-    protected Client $client;
+
+    /** @var Client|null */
+    protected ?Client $client = null;
 
     public function __construct(
         protected readonly AuthorizationServer $server,
+
         protected readonly \GuzzleHttp\Client  $guzzleClient
     )
     {
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     * @throws GuzzleException
+     */
     public function run(array $data): array
     {
         $this->getPassportCredentials();
+
         return $this->withParsedBodyToServerRequest($data);
     }
 
     protected function getPassportCredentials(): void
     {
         $oClientId = Config::get('passport.personal_grant_client.id');
-        $this->client = Client::find($oClientId);
+
+        $client = Client::find($oClientId);
+
+        if (!$client instanceof Client) {
+            throw new NotFoundHttpException("OAuth Client not found or invalid.");
+        }
+
+        $this->client = $client;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     * @throws GuzzleException
+     */
     protected function withParsedBodyToServerRequest(array $data): array
     {
+        if (!isset($this->client->id, $this->client->secret)) {
+            throw new NotFoundHttpException("Client credentials not found.");
+        }
+
         $data = [
             'grant_type' => 'password',
             'username' => $data['email'],
@@ -51,18 +72,18 @@ class ParentAuthAction
             'scope' => '*',
         ];
 
+        $response = $this->guzzleClient->request(
+            'POST',
+            config('app.url') . '/oauth/token',
+            ['form_params' => $data]
+        );
 
-        if (isset($this->client->id) && isset($this->client->secret)) {
-            $response = $this->guzzleClient->request(
-                'POST',
-                config('app.url') . '/oauth/token',
-                ['form_params' => $data]
-            );
+        $responseBody = json_decode($response->getBody()->getContents(), true);
 
-        } else {
-            throw new NotFoundHttpException();
+        if (!is_array($responseBody)) {
+            throw new \UnexpectedValueException("Invalid response from OAuth server.");
         }
 
-        return json_decode($response->getBody()->getContents(), true);
+        return $responseBody;
     }
 }

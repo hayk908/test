@@ -15,6 +15,12 @@ class Category extends Model
 
     public $timestamps = FALSE;
 
+
+    /**
+     * Get the users associated with the category.
+     *
+     * @return BelongsToMany<User>
+     */
     public function user(): belongsToMany
     {
         return $this->belongsToMany(User::class, 'users_category');

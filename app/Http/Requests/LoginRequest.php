@@ -4,11 +4,14 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class AuthsRequestName extends FormRequest
+class LoginRequest extends FormRequest
 {
    public const EMAIL = 'email';
    public const PASSWORD = 'password';
 
+    /**
+     * @return array<string, string>
+     */
     public function rules(): array
     {
         return [

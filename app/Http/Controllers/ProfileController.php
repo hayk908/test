@@ -2,31 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProfilRequestName;
+use App\Http\Requests\ProfileRequestName;
 use App\Models\Profile;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+
 class ProfileController extends Controller
 {
-    public function createProfile(ProfilRequestName $profileRequestName): JsonResponse
+    public function createProfile(ProfileRequestName $profileRequestName): JsonResponse
     {
-
-
+        /** @var User $user */
         $user = Auth::user();
 
-        $userId = Auth::id();
-
-        $profile = $user->profile;
+        $profile = Profile::query()->where('user_id', $user->id)->first();
 
         $data = $profileRequestName->toArray();
 
         if ($profile === null) {
 
             $profileData = [
-                'user_id' => $userId,
+                'user_id' => $user->id,
                 'bio' => $data['bio'],
                 'avatar' => $data['avatar'],
             ];
@@ -35,7 +33,7 @@ class ProfileController extends Controller
 
             return response()->json($createdProfile);
         } else {
-            Profile::query()->where('user_id', $userId)->
+            Profile::query()->where('user_id', $user->id)->
             update(['avatar' => $data['avatar'], 'bio' => $data['bio']]);
             return response()->json([
                 "message" => "Profile updated",
@@ -45,8 +43,9 @@ class ProfileController extends Controller
 
     public function getProfile(): JsonResponse
     {
+        /** @var User $user */
         $user = Auth::user();
-        $profile = $user->profile;
+        $profile = Profile::query()->where('user_id', $user->id)->first();
 
         return response()->json([
             'user' => $user->name,

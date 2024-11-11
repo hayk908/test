@@ -1,13 +1,13 @@
 <?php
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\PivoteController;
-use App\Http\Controllers\PostsController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PostsController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\WeatherController;
+use App\Http\Controllers\CategoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,40 +28,40 @@ Route::prefix('auth')->group(function () {
     Route::post('login', [AuthController::class, 'login'])->name('login');
 });
 
-Route::put('/create', [UserController::class, 'create']);
+Route::get('/get', [UserController::class, 'get']);
+
+Route::post('/login', [AuthController::class, 'login']);
 
 Route::put('/update', [UserController::class, 'update']);
+
+Route::get('/filter', [UserController::class, 'filter']);
+
+Route::post('/create', [UserController::class, 'create']);
 
 Route::delete('/delete', [UserController::class, 'delete'])
     ->middleware('auth:api');
 
-Route::get('/search', [UserController::class, 'search']);
-
-Route::get('/get', [UserController::class, 'get']);
-
-Route::put('/update_enable/{id}', [UserController::class, 'updateEnable']);
+Route::get('/users/data', [UserController::class, 'getData']);
 
 Route::get('/get_all_users', [UserController::class, 'getAllUsers'])
     ->middleware(['checkType', 'auth:api']);
 
-Route::get('/filter', [UserController::class, 'filter']);
+Route::get('/get_profile', [ProfileController::class, 'getProfile'])
+    ->middleware('auth:api');
 
-Route::post('/login', [AuthController::class, 'login']);
+Route::get('/weather/city', [WeatherController::class, 'getWeather']);
+
+Route::get('/users/{userId}/posts', [PostsController::class, 'getPost']);
+
+Route::put('/enableUser/{user}', [UserController::class, 'enableUser']);
 
 Route::post('/create_profile', [ProfileController::class, 'createProfile'])
     ->middleware('auth:api');
 
-Route::get('/get_profile', [ProfileController::class, 'getProfile'])
-    ->middleware('auth:api');
-
-Route::get('/get_profile_by_id/{id}', [ProfileController::class, 'getProfileById']);
-
 Route::post('/users/{userId}/posts', [PostsController::class, 'createPost']);
-
-Route::get('/users/{userId}/posts', [PostsController::class, 'getPost']);
-
-Route::post('/users/{user}/category', [CategoryController::class, 'createCategory']);
 
 Route::get('/users/{userId}/category', [CategoryController::class, 'getCategory']);
 
-Route::get('/users/data', [UserController::class, 'getData']);
+Route::get('/get_profile_by_id/{id}', [ProfileController::class, 'getProfileById']);
+
+Route::post('/users/{user}/category', [CategoryController::class, 'createCategory']);

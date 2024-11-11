@@ -10,6 +10,10 @@ class UserDateList extends FormRequest
 
     public const END = 'end';
 
+
+    /**
+     * @return array<string, string>
+     */
     public function rules(): array
     {
         return [
