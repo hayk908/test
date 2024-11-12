@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Service\CoinGeckoService;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Passport\Passport;
 
@@ -12,9 +13,11 @@ class AppServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function register()
+    public function register(): void
     {
-        //
+        $this->app->singleton(CoinGeckoService::class, function ($app) {
+            return new CoinGeckoService();
+        });
     }
 
     /**

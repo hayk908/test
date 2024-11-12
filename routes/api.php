@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CoinGeckoController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
@@ -65,3 +66,5 @@ Route::get('/users/{userId}/category', [CategoryController::class, 'getCategory'
 Route::get('/get_profile_by_id/{id}', [ProfileController::class, 'getProfileById']);
 
 Route::post('/users/{user}/category', [CategoryController::class, 'createCategory']);
+
+Route::get('/bitcoin_price', [CoinGeckoController::class, 'getBitcoinPrice']);
