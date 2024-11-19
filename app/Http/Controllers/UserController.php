@@ -3,15 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\GetUsersRequest;
+use App\Http\Requests\UserRequest;
+use App\Http\Requests\UserUpdateRequest;
+use App\Http\Requests\UserDeleteRequest;
+use App\Http\Requests\UserDateList;
+use App\Http\Resources\GetAllUsersResourceCollection;
+use App\Http\Resources\UserCreateResource;
+use App\Http\Resources\GetUsersResource;
+use App\Http\Resources\GetDataResource;
 use App\Models\User;
+use App\Services\UserService;
 use Exception;
 use Illuminate\Http\Request;
-use App\Service\UserService;
 use Illuminate\Http\JsonResponse;
-use App\Http\Requests\UserRequest;
-use App\Http\Requests\UserDateList;
-use App\Http\Requests\UserDeleteRequest;
-use App\Http\Requests\UserUpdateRequest;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class UserController extends Controller
 {
@@ -19,63 +24,40 @@ class UserController extends Controller
     {
     }
 
-    public function create(UserRequest $userRequestName): JsonResponse
+    public function create(UserRequest $userRequest): UserCreateResource
     {
-        $validatedData = $userRequestName->validated();
+        $validatedData = $userRequest->validated();
 
         $user = $this->userService->createUser($validatedData);
 
-        return response()->json($user, 201);
+        return new UserCreateResource($user);
     }
 
     public function update(UserUpdateRequest $userUpdateRequest): JsonResponse
     {
-        $data = $userUpdateRequest->toArray();
+        $this->userService->updateUser($userUpdateRequest->validated());
 
-        $this->userService->updateUser($data);
-
-        return response()->json([
-            'message' => 'Пользователь обновлен успешно'
-        ]);
+        return response()->json(['message' => 'Пользователь обновлен успешно']);
     }
 
     public function delete(UserDeleteRequest $userDeleteRequest): JsonResponse
     {
-        $validatedData = $userDeleteRequest->validated();
+        $validated = $userDeleteRequest->validated();
 
-        $data = [];
+        $ids = array_values($validated);
 
-        foreach ($validatedData as $item) {
-            if (is_numeric($item)) {
-                $data[] = (int)$item;
-            } else {
-                throw new \InvalidArgumentException('Ожидается числовое значение для идентификатора пользователя.');
-            }
-        }
-
-        $message = $this->userService->deleteUser($data);
+        $message = $this->userService->deleteUser($ids);
 
         return response()->json($message);
     }
 
-    public function get(Request $request): JsonResponse
-    {
-        $order = $request->query('order', 'asc');
-
-        if (!is_string($order)) {
-            $order = 'asc';
-        }
-
-        $user = $this->userService->getUsers($order);
-
-        return response()->json($user);
-    }
-
     public function enableUser(User $user, Request $request): JsonResponse
     {
-        $data = $request->validate(['name' => 'required|string|max:255']);
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
 
-        $message = $this->userService->enableUser($user->id, $data);
+        $message = $this->userService->enableUser($user->id, $validatedData);
 
         return response()->json($message);
     }
@@ -83,26 +65,19 @@ class UserController extends Controller
     /**
      * @throws Exception
      */
-    public function getAllUsers(GetUsersRequest $request): JsonResponse
+    public function getAllUsers(GetUsersRequest $getUsersRequest): GetAllUsersResourceCollection
     {
-        $users = $this->userService->getAllUsers($request);
+        $users = $this->userService->getAllUsers($getUsersRequest);
 
-        return response()->json($users);
+        return new GetAllUsersResourceCollection($users);
     }
 
-    public function getData(UserDateList $userDateList): JsonResponse
+    public function getData(UserDateList $userDateList): AnonymousResourceCollection
     {
         $validatedData = $userDateList->validated();
 
-        $data = [];
+        $users = $this->userService->getData($validatedData);
 
-        foreach ($validatedData as $key => $value) {
-
-            $data[$key] = is_scalar($value) ? (string)$value : '';
-        }
-
-        $users = $this->userService->getData($data);
-
-        return response()->json($users);
+        return GetDataResource::collection($users);
     }
 }

@@ -16,7 +16,6 @@ class CoinGeckoService
     }
 
     /**
-     * Получить цену для выбранных валют.
      *
      * @param array<string>|string $ids
      * @param array<string>|string $vsCurrencies

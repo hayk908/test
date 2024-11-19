@@ -29,23 +29,14 @@ Route::prefix('auth')->group(function () {
     Route::post('login', [AuthController::class, 'login'])->name('login');
 });
 
-Route::get('/get', [UserController::class, 'get']);
-
-Route::post('/login', [AuthController::class, 'login']);
-
-Route::put('/update', [UserController::class, 'update']);
-
-Route::get('/filter', [UserController::class, 'filter']);
-
-Route::post('/create', [UserController::class, 'create']);
-
-Route::delete('/delete', [UserController::class, 'delete'])
-    ->middleware('auth:api');
-
-Route::get('/users/data', [UserController::class, 'getData']);
-
-Route::get('/get_all_users', [UserController::class, 'getAllUsers'])
-    ->middleware(['checkType', 'auth:api']);
+Route::prefix('/users')->group(function () {
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::put('/update', [UserController::class, 'update']);
+    Route::post('/create', [UserController::class, 'create']);
+    Route::delete('/delete', [UserController::class, 'delete']);
+    Route::get('/data', [UserController::class, 'getData']);
+    Route::get('/all', [UserController::class, 'getAllUsers'])->middleware('auth:api');
+});
 
 Route::get('/get_profile', [ProfileController::class, 'getProfile'])
     ->middleware('auth:api');
@@ -61,7 +52,7 @@ Route::post('/create_profile', [ProfileController::class, 'createProfile'])
 
 Route::post('/users/{userId}/posts', [PostsController::class, 'createPost']);
 
-Route::get('/users/{userId}/category', [CategoryController::class, 'getCategory']);
+Route::get('/get/{userId}/category', [CategoryController::class, 'getCategory']);
 
 Route::get('/get_profile_by_id/{id}', [ProfileController::class, 'getProfileById']);
 

@@ -16,7 +16,8 @@ class GetUsersRequest extends FormRequest
         return [
             'enable' => 'nullable|in:0,1',
             'users' => 'nullable|array',
-            'users.*' => 'integer|exists:users,id'
+            'users.*' => 'integer|exists:users,id',
+            'order' => 'nullable|string|in:asc,desc',
         ];
     }
 }

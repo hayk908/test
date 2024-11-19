@@ -3,37 +3,32 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\FormRequestName;
-use App\Models\Category;
+use App\Http\Resources\CreateCategoryResource;
+use App\Services\CategoryService;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class CategoryController extends Controller
 {
-    public function createCategory(FormRequestName $requestName, User $user): JsonResponse
+    protected CategoryService $categoryService;
+
+    public function __construct(CategoryService $categoryService)
+    {
+        $this->categoryService = $categoryService;
+    }
+
+    public function createCategory(FormRequestName $requestName, User $user): CreateCategoryResource
     {
         $data = $requestName->toArray();
+        $category = $this->categoryService->createCategory($data, $user);
 
-        $category = Category::query()->create($data);
-
-        $user->category()->attach($category->id);
-
-        return response()->json($category->toArray());
+        return new CreateCategoryResource($category);
     }
 
     public function getCategory(int $userId): JsonResponse
     {
-        $user = User::find($userId);
+        $categoriesData = $this->categoryService->getCategoriesByUser($userId);
 
-        if (!$user) {
-            throw new NotFoundHttpException('User not found');
-        }
-
-        $categories = $user->category;
-
-        return response()->json([
-            'userName' => $user->name,
-            'categories' => $categories
-        ]);
+        return response()->json($categoriesData);
     }
 }
