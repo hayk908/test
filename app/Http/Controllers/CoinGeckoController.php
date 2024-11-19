@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CoinGeckoRequest;
 use App\Service\CoinGeckoService;
+use App\Traits\GreetableTraits;
 use Illuminate\Http\JsonResponse;
 
 class CoinGeckoController extends Controller
 {
+//    use GreetableTraits;
+
     protected CoinGeckoService $coinGeckoService;
 
     public function __construct(CoinGeckoService $coinGeckoService)
@@ -19,13 +22,7 @@ class CoinGeckoController extends Controller
     {
         $data = $request->validated();
 
-        $ids = array_map(fn($item) => is_scalar($item) ? (string)$item : '', (array)$data['ids']);
-        $vsCurrencies = array_map(fn($item) => is_scalar($item) ? (string)$item : '', (array)$data['vs_currencies']);
-
-        $ids = array_filter($ids, fn($item) => $item !== '');
-        $vsCurrencies = array_filter($vsCurrencies, fn($item) => $item !== '');
-
-        $response = $this->coinGeckoService->getPrice($ids, $vsCurrencies);
+        $response = $this->coinGeckoService->getPrice($data['ids'], $data['vs_currencies']);
 
         if ($response) {
             return response()->json($response);

@@ -19,7 +19,7 @@ class UserUpdateRequest extends FormRequest
     {
         return [
             'email' => 'required|email',
-            'name' => 'required',
+            'name' => 'required|string ',
         ];
     }
 }

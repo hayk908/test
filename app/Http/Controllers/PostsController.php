@@ -3,46 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PostsRequestName;
-use App\Models\Post;
-use App\Models\User;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Http\Resources\CreateUsersPostsResource;
+use App\Http\Resources\GetUsersPosts;
+use App\Services\PostsService;
 
 class PostsController extends Controller
 {
-    public function createPost(PostsRequestName $postsRequestName, int $userId): JsonResponse
+    protected PostsService $postsService;
+
+    public function __construct(PostsService $postsService)
     {
-
-        $data = $postsRequestName->toArray();
-
-        $postsData = [
-            'user_id' => $userId,
-            'title' => $data['title'],
-            'content' => $data['content'],
-        ];
-
-        $createPost = Post::query()->create($postsData);
-
-        return response()->json([$createPost]);
+        $this->postsService = $postsService;
     }
 
-    public function getPost(int $userId): JsonResponse
+    public function createPost(PostsRequestName $postsRequestName, int $userId): CreateUsersPostsResource
     {
-        $user = User::query()->find($userId);
+        $data = $postsRequestName->toArray();
+        $createPost = $this->postsService->createPost($data, $userId);
 
-        if (!$user) {
-            throw new NotFoundHttpException('User not found');
-        }
+        return new CreateUsersPostsResource($createPost);
+    }
 
-        $userPost = Post::query()->where('user_id', $userId)
-            ->where('active', true)->get();
+    public function getPost(int $userId): GetUsersPosts
+    {
+        $postData = $this->postsService->getPost($userId);
 
-        $count = Post::query()->where('user_id', $userId)->where('active', true)->count();
-        return response()->json([
-            'userName' => $user->name,
-            'posts' => $userPost,
-            'count' => $count
-        ]);
+        return new GetUsersPosts($postData);
     }
 }
